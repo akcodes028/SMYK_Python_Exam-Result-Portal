@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMYAK Python Programming Examination Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- HTML2CANVAS for image capture -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <canvas id="confetti-canvas" style="display:none;"></canvas>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo-section">
+        <img id="headerLogo" src="image.png" alt="SAMYAK Logo"
+             onerror="this.style.display='none';document.getElementById('headerLogoEmoji').style.display='flex';">
+        <div id="headerLogoEmoji" class="logo-emoji" style="display:none;">🎓</div>
+      </div>
+      <div class="institute-info">
+        <h1 class="institute-name">SAMYAK Computer Classes</h1>
+        <p class="franchise-text">Authorized Franchisee — Osian Enterprise</p>
+        <p class="branch-info">📍 Manjalpur Branch, Vadodara</p>
+      </div>
+      <!-- HEADER ACTION BUTTONS (shown after result loads) -->
+      <div class="header-actions" id="headerActions" style="display:none;">
+        <button class="hdr-btn hdr-btn-wa" onclick="shareResultWhatsApp()" title="Share on WhatsApp">
+          <span class="hdr-btn-icon">🟢</span>
+          <span class="hdr-btn-label">Share</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main-container">
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip reveal">
+      <div class="stat-item">
+        <span class="stat-num">2,400+</span>
+        <span class="stat-lbl">Students Certified</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-item">
+        <span class="stat-num">98%</span>
+        <span class="stat-lbl">Pass Rate</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-item">
+        <span class="stat-num">Since 2013</span>
+        <span class="stat-lbl">Excellence</span>
+      </div>
+    </div>
+
+    <!-- SEARCH SECTION -->
+    <section class="search-section reveal">
+      <div class="search-card">
+        <div class="search-card-icon">🏆</div>
+        <h2 class="section-title">Python Programming Examination</h2>
+        <p class="section-title-badge">Results 2026</p>
+        <p class="section-subtitle">Search by Student ID ,, .. .. .. ..</p>
+
+        <div class="search-input-wrap">
+          <div class="search-input-group">
+            <div class="search-icon-wrap">🔍</div>
+            <input
+              type="text"
+              id="studentId"
+              class="search-input"
+              placeholder="Student ID / Name / Mobile…"
+              autocomplete="off"
+              oninput="handleSearchInput(this.value)"
+            >
+            <button id="searchBtn" class="search-button" onclick="getResult()">
+              Search
+            </button>
+          </div>
+          <!-- Autocomplete suggestions -->
+          <div id="searchSuggestions" class="search-suggestions" style="display:none;"></div>
+        </div>
+
+        <div class="search-hints">
+          <span>e.g.</span>
+          <button class="hint-chip" onclick="fillSearch('SMYK-VM-PYTHON-001')">SMYK-VM-PYTHON-001</button>
+                    <button class="hint-chip" onclick="fillSearch('SMYK-VM-PYTHON-002')">SMYK-VM-PYTHON-002</button>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display:none;"></div>
+
+        <!-- SKELETON LOADER -->
+        <div id="skeletonLoader" class="skeleton-wrap" style="display:none;">
+          <div class="skel skel-avatar"></div>
+          <div class="skel-lines">
+            <div class="skel skel-line skel-lg"></div>
+            <div class="skel skel-line skel-md"></div>
+            <div class="skel skel-line skel-sm"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULT STATUS BANNER -->
+    <div id="resultBanner" class="result-banner" style="display:none;"></div>
+
+    <!-- ========== RESULT SECTION ========== -->
+    <section id="resultSection" class="result-section" style="display:none;">
+
+      <!-- REPORT CARD -->
+      <div class="result-card reveal" id="reportCardSection">
+
+        <!-- Card Header -->
+        <div class="result-header">
+          <div class="student-avatar">
+            <span id="studentInitial">S</span>
+          </div>
+          <div class="header-info">
+            <h2 id="studentName" class="student-name">Student Name</h2>
+            <p id="studentId-display" class="student-id-small">—</p>
+          </div>
+          <div class="result-quick-badge" id="quickBadge">—</div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">📱 Mobile</span>
+            <p class="detail-value" id="mobileDisplay">—</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">✉️ Email</span>
+            <p class="detail-value" id="emailDisplay">—</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">👥 Batch</span>
+            <p class="detail-value" id="batchDisplay">—</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">📅 Exam Year</span>
+            <p class="detail-value">2026</p>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- MCQ TABLE -->
+        <div class="marks-section">
+          <h3 class="marks-title">MCQ Assessment <span class="marks-max">(50 Marks)</span></h3>
+          <div class="marks-table-wrap">
+            <table class="marks-table">
+              <thead>
+                <tr><th>Section</th><th>Max</th><th>Obtained</th><th>Bar</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Python MCQ</td><td>50</td>
+                  <td id="mcqScoreDisplay">-</td>
+                  <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" id="barMcq"></div></div></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="2">MCQ Total</td><td id="mcqTotalDisplay">-/50</td><td></td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- PRACTICAL TABLE -->
+        <div class="marks-section">
+          <h3 class="marks-title">Practical Programming <span class="marks-max">(50 Marks)</span></h3>
+          <div class="marks-table-wrap">
+            <table class="marks-table">
+              <thead>
+                <tr><th>Question</th><th>Max</th><th>Obtained</th><th>Bar</th></tr>
+              </thead>
+             <tbody>
+                <tr>
+                  <td>Python Practical</td><td>50</td>
+                  <td id="practicalScoreDisplay">-</td>
+                  <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" id="barPractical"></div></div></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="2">Practical Total</td><td id="practicalTotalDisplay">-/50</td><td></td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- RESULT SUMMARY -->
+        <div class="result-summary">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span>Grand Total</span>
+              <p id="grandTotalDisplay" class="count-up" data-target="0">—/100</p>
+            </div>
+            <div class="summary-item">
+              <span>Percentage</span>
+              <p id="percentageDisplay">—%</p>
+            </div>
+            <div class="summary-item">
+              <span>Grade</span>
+              <p id="gradeDisplay">—</p>
+            </div>
+            <div class="summary-item">
+              <span>Result</span>
+              <p class="result-badge" id="resultDisplay">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-buttons action-share-row">
+          <button class="btn btn-img" onclick="downloadReportCardImage()">
+            <span>🖼️</span> Save Report as Image
+          </button>
+          <button class="btn btn-img-cert" onclick="downloadCertificateImage()">
+            <span>🏅</span> Save Certificate as Image
+          </button>
+        </div>
+        <div class="action-buttons action-wa-row">
+          <button class="btn btn-wa" onclick="shareReportWhatsApp()">
+            <span>📤</span> Share Report Card on WhatsApp
+          </button>
+          <button class="btn btn-wa-cert" onclick="shareCertificateWhatsApp()">
+            <span>📤</span> Share Certificate on WhatsApp
+          </button>
+        </div>
+        <button class="btn btn-secondary" onclick="location.reload()">🔄 Search Another Student</button>
+
+      </div><!-- end result-card -->
+
+      <!-- ========== CERTIFICATE ========== -->
+      <section id="certificateSection" class="certificate-section reveal">
+
+        <!-- Certificate Header Actions -->
+        <div class="cert-header-actions">
+          <h3 class="cert-section-label">🏅 Examination Certificate</h3>
+          <div class="cert-action-btns">
+            <button class="cert-act-btn cert-act-img" onclick="downloadCertificateImage()" title="Save as Image">
+              🖼️ Save Image
+            </button>
+            <button class="cert-act-btn cert-act-wa" onclick="shareCertificateWhatsApp()" title="Share on WhatsApp">
+              📲 WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <div class="certificate" id="certificateEl">
+
+          <!-- GOLDEN TOP BORDER LINE -->
+          <div class="cert-gold-line"></div>
+
+          <!-- TOP STRIP -->
+          <div class="cert-top-strip">
+            <div class="cert-logo-wrap">
+              <img src="image.png" alt="SAMYAK Logo" class="cert-logo-img"
+                   onerror="this.style.display='none';document.getElementById('certLogoFallback').style.display='flex';">
+              <div id="certLogoFallback" class="cert-logo-fallback" style="display:none;">🏅</div>
+            </div>
+            <div class="cert-org-block">
+              <p class="cert-org-abbr">SCC</p>
+              <p class="cert-org-full">SAMYAK COMPUTER CLASSES</p>
+              <p class="cert-org-sub">Authorized Franchisee — Osian Enterprise</p>
+            </div>
+            <div class="cert-top-right">
+              <p class="cert-top-exam-label">PYTHON PROGRAMMING EXAMINATION</p>
+              <p class="cert-top-year">2026</p>
+            </div>
+          </div>
+
+          <!-- CERTIFICATE BODY -->
+          <div class="cert-body">
+
+            <!-- PASS version -->
+            <div id="certPassBlock">
+              <div class="cert-title-wrap">
+                <div class="cert-title-ornament">✦</div>
+                <p class="cert-type-label">CERTIFICATE OF ACHIEVEMENT</p>
+                <div class="cert-title-ornament">✦</div>
+              </div>
+              <p class="cert-of-label">PYTHON PROGRAMMING EXAMINATION — 2026</p>
+              <p class="cert-presents-text">This is to proudly certify that</p>
+              <h2 class="cert-candidate-name" id="certStudentName">—</h2>
+              <p class="cert-body-text">
+                has appeared and <strong>successfully passed</strong> the Python Programming Examination 2026,
+                conducted by Samyak Computer Classes (Authorized Franchisee — Osian Enterprise),
+                Manjalpur Branch, Vadodara.
+              </p>
+              <p class="cert-body-text cert-extra-line">
+                The candidate has demonstrated strong knowledge and practical skills in
+                Python programming, control flow, functions, recursion, modules, and file/OOP concepts.
+              </p>
+              <p class="cert-congratulations">🎉 Congratulations on this achievement!</p>
+            </div>
+
+            <!-- FAIL version -->
+            <div id="certFailBlock" style="display:none;">
+              <div class="cert-title-wrap">
+                <div class="cert-title-ornament">◆</div>
+                <p class="cert-type-label cert-fail-label">EXAMINATION RESULT CARD</p>
+                <div class="cert-title-ornament">◆</div>
+              </div>
+              <p class="cert-of-label">PYTHON PROGRAMMING EXAMINATION — 2026</p>
+              <p class="cert-presents-text">This is to certify that</p>
+              <h2 class="cert-candidate-name fail-name" id="certStudentNameFail">—</h2>
+              <p class="cert-body-text">
+                has appeared in the Python Programming Examination 2026, conducted by
+                Samyak Computer Classes (Authorized Franchisee — Osian Enterprise),
+                Manjalpur Branch, Vadodara.
+              </p>
+              <p class="cert-body-text cert-extra-line">
+                The candidate is encouraged to revisit the course material and re-appear in the
+                next examination cycle. We believe in your potential — <strong>keep going!</strong>
+              </p>
+              <p class="cert-encouragement">💪 Better luck next time — we are with you!</p>
+            </div>
+
+            <!-- MARKS STRIP -->
+            <div class="cert-marks-strip">
+              <div class="cert-mark-pill">
+                <span class="pill-label">Student ID</span>
+                <strong class="pill-value" id="certStudentId">—</strong>
+              </div>
+              <div class="cert-mark-pill">
+                <span class="pill-label">Total Marks</span>
+                <strong class="pill-value" id="certGrandTotal">—/100</strong>
+              </div>
+              <div class="cert-mark-pill">
+                <span class="pill-label">Percentage</span>
+                <strong class="pill-value" id="certPercentage">—%</strong>
+              </div>
+              <div class="cert-mark-pill">
+                <span class="pill-label">Grade</span>
+                <strong class="pill-value" id="certGrade">—</strong>
+              </div>
+              <div class="cert-mark-pill cert-result-pill" id="certResultPill">
+                <span class="pill-label">Result</span>
+                <strong class="pill-value cert-result-val" id="certResult">—</strong>
+              </div>
+            </div>
+
+          </div><!-- end cert-body -->
+
+          <!-- CERTIFICATE FOOTER -->
+          <div class="cert-footer">
+            <div class="cert-footer-left">
+              <p class="cert-verif-title">VERIFICATION DETAILS</p>
+              <p class="cert-verif-line">Verification No: <span id="certVerifNo">—</span></p>
+              <p class="cert-verif-line">Email: info@osian.tech</p>
+              <p class="cert-verif-line">Phone: 7383021062, 9601257564</p>
+              <p class="cert-verif-line">Issued: <span id="certDate">—</span></p>
+              <p class="cert-verif-line">Certificate ID: <span id="certNumber">—</span></p>
+            </div>
+            <div class="cert-footer-center">
+              <div class="cert-seal">
+                <div class="cert-seal-inner">
+                  <p class="seal-text">OSIAN</p>
+                  <p class="seal-sub">ENTERPRISE</p>
+                  <p class="seal-year">✦ 2026 ✦</p>
+                </div>
+              </div>
+            </div>
+            <div class="cert-footer-right">
+              <div class="cert-signature-block">
+                <div class="cert-sig-line"></div>
+                <p class="cert-sig-name">Badal Shah</p>
+                <p class="cert-sig-role">AUTHORISED FRANCHISEE</p>
+                <p class="cert-sig-subrole">Osian Enterprise</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM BANNER -->
+          <div class="cert-bottom-banner">
+            <p class="cert-banner-org">OSIAN ENTERPRISE — LOCAL OFFICE &amp; FRANCHISEE CONTACT</p>
+            <p class="cert-banner-address">FF-03 Samanway Sequence, Above Apollo Pharmacy, Ambe School Road, Vadodara – 390011</p>
+            <p class="cert-banner-address">www.osian.tech &nbsp;|&nbsp; 7383021062 &nbsp;|&nbsp; 9601257564 &nbsp;|&nbsp; info@osian.tech</p>
+          </div>
+
+          <!-- GOLDEN BOTTOM BORDER LINE -->
+          <div class="cert-gold-line"></div>
+
+        </div><!-- end certificateEl -->
+      </section>
+
+    </section><!-- end resultSection -->
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast" style="display:none;"></div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2026 SAMYAK Computer Classes | Managed by Osian Enterprise</p>
+      <p>Developed by Abhi Kayasth (AK Codes)</p>
+      <p class="developer-credit">Crafted with care for student performance transparency</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

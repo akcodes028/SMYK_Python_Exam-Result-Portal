@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMYAK MS Office Examination Portal - Student Result Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo-section">
+        <div class="logo-placeholder">🎓</div>
+      </div>
+
+      <div class="institute-info">
+        <h1 class="institute-name">SAMYAK Computer Classes</h1>
+
+        <!-- 🔥 ADDED FRANCHISER LINE -->
+        <p class="franchise-text">Franchiser by The Osian Enterprise</p>
+
+        <p class="branch-info">
+          📍 Manjalpur Branch, Vadodara | Managed by Osian Enterprise
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Search -->
+    <section class="search-section">
+      <div class="search-card">
+        <h2 class="section-title">MS Office Examination Results 2024</h2>
+        <p class="section-subtitle">Enter your Student ID to view your result</p>
+
+        <div class="search-input-group">
+          <input 
+            type="text" 
+            id="studentId" 
+            class="search-input" 
+            placeholder="Enter Student ID (e.g., SMYK/VM-001)"
+            autocomplete="off"
+          >
+
+          <button id="searchBtn" class="search-button" onclick="getResult()">
+            <span class="button-text">Search Result</span>
+            <span class="button-icon">🔍</span>
+          </button>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display:none;"></div>
+
+        <div id="loadingSpinner" class="loading-spinner" style="display:none;">
+          <div class="spinner"></div>
+          <p>Fetching your result...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section id="resultSection" class="result-section" style="display:none;">
+
+      <div class="result-card">
+
+        <!-- Student Header -->
+        <div class="result-header">
+          <div class="student-avatar">
+            <span id="studentInitial">S</span>
+          </div>
+
+          <div class="header-info">
+            <h2 id="studentName" class="student-name">Student Name</h2>
+            <p id="studentId-display" class="student-id-small">-</p>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>📱 Mobile</label>
+            <p id="mobileDisplay">-</p>
+          </div>
+
+          <div class="detail-item">
+            <label>✉️ Email</label>
+            <p id="emailDisplay">-</p>
+          </div>
+
+          <div class="detail-item">
+            <label>👥 Batch</label>
+            <p id="batchDisplay">-</p>
+          </div>
+
+          <div class="detail-item">
+            <label>📅 Exam Year</label>
+            <p>2024</p>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- THEORY -->
+        <div class="marks-section">
+          <h3>📚 Theory (40 Marks)</h3>
+
+          <div class="marks-grid">
+            <div><p>Excel</p><span id="excelTheoryDisplay">0/20</span></div>
+            <div><p>Word</p><span id="wordTheoryDisplay">0/10</span></div>
+            <div><p>PowerPoint</p><span id="pptTheoryDisplay">0/10</span></div>
+            <div><p>Total</p><span id="theoryTotalDisplay">0/40</span></div>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- PRACTICAL -->
+        <div class="marks-section">
+          <h3>💻 Practical (60 Marks)</h3>
+
+          <div class="marks-grid">
+            <div><p>Excel</p><span id="excelPracticalDisplay">0/25</span></div>
+            <div><p>Word</p><span id="wordPracticalDisplay">0/20</span></div>
+            <div><p>PowerPoint</p><span id="pptPracticalDisplay">0/15</span></div>
+            <div><p>Total</p><span id="practicalTotalDisplay">0/60</span></div>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- SUMMARY -->
+        <div class="result-summary">
+
+          <div>
+            <label>Grand Total</label>
+            <p id="grandTotalDisplay">0/100</p>
+          </div>
+
+          <div>
+            <label>Percentage</label>
+            <p id="percentageDisplay">0%</p>
+          </div>
+
+          <div>
+            <label>Grade</label>
+            <p id="gradeDisplay">-</p>
+          </div>
+
+          <div>
+            <label>Result</label>
+            <p id="resultDisplay">-</p>
+          </div>
+
+        </div>
+
+        <!-- Buttons -->
+        <div class="action-buttons">
+          <button onclick="window.print()">🖨️ Print Certificate</button>
+
+          <!-- FIXED FUNCTION -->
+          <button onclick="location.reload()">🔄 Search Another</button>
+        </div>
+
+      </div>
+
+      <!-- CERTIFICATE -->
+      <section id="certificateSection" class="certificate-section">
+
+        <div class="certificate">
+
+          <div class="certificate-header">
+            <h1>SAMYAK Computer Classes</h1>
+
+            <!-- 🔥 FRANCHISER TEXT -->
+            <p class="franchise-text">Franchiser by The Osian Enterprise</p>
+
+            <p>Manjalpur Branch, Vadodara</p>
+          </div>
+
+          <div class="certificate-body">
+
+            <h2>Certificate of Achievement</h2>
+
+            <p>This is to certify that</p>
+
+            <h3 id="certStudentName">-</h3>
+
+            <p>ID: <strong id="certStudentId">-</strong></p>
+
+            <p>has successfully completed MS Office Examination</p>
+
+            <div class="cert-marks">
+              <span>Total: <b id="certGrandTotal">0/100</b></span>
+              <span>Percentage: <b id="certPercentage">0%</b></span>
+              <span>Grade: <b id="certGrade">-</b></span>
+            </div>
+
+            <p>Result: <span id="certResult">-</span></p>
+
+            <p>Congratulations on your achievement!</p>
+
+          </div>
+
+          <div class="certificate-footer">
+            <p>_________________</p>
+            <p>Institute Director</p>
+
+            <p id="certDate">Date</p>
+          </div>
+
+          <p>Certificate ID: <span id="certNumber">-</span></p>
+
+        </div>
+
+      </section>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 SAMYAK Computer Classes | Managed by Osian Enterprise</p>
+    <p>Developed by Abhi Kayasth (AK Codes)</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

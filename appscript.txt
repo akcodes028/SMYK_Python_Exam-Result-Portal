@@ -1,0 +1,191 @@
+﻿/*************************************************
+ * PYTHON PROGRAMMING RESULT API - 100 MARK SYSTEM
+ * SAMYAK Computer Classes
+ *************************************************/
+
+function doGet(e) {
+  const params = (e && e.parameter) ? e.parameter : {};
+  const callback = params.callback;
+
+  try {
+    const query = (params.studentId || "").trim();
+
+    if (!query) {
+      return output({
+        error: "Search value missing",
+        help: "Open the deployed web app URL with ?studentId=YOUR_ID, or search from the result portal."
+      }, callback);
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const finalSheet = getSheetAny(ss, ["Final_Result", "FINAL_RESULT"]);
+    if (!finalSheet) throw new Error("Final_Result sheet not found");
+
+    const finalPayload = findFinalResult(finalSheet, query);
+    if (!finalPayload) return output({ error: "Student not found" }, callback);
+
+    const studentId = getValue(finalPayload.headers, finalPayload.row, ["student_id", "student id"]);
+    const formPayload = findFormDetails(ss, studentId);
+    const practicalPayload = findPracticalMarks(ss, studentId);
+
+    return output(mapRow(finalPayload, formPayload, practicalPayload), callback);
+  } catch (err) {
+    return output({ error: err.toString() }, callback);
+  }
+}
+
+function getSheetAny(ss, names) {
+  for (const name of names) {
+    const sheet = ss.getSheetByName(name);
+    if (sheet) return sheet;
+  }
+  return null;
+}
+
+function normalizeHeader(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeSearch(value) {
+  return String(value || "").trim().toUpperCase();
+}
+
+function normalizeStudentId(value) {
+  let v = normalizeSearch(value);
+  if (/^\d+$/.test(v)) return "SMYK/VM-" + v.padStart(3, "0");
+  if (/^VM-?\d+$/.test(v)) return "SMYK/VM-" + v.replace("VM", "").replace("-", "").padStart(3, "0");
+  const m = v.match(/^(SMYK\/?VM-?)(\d+)$/);
+  if (m) return "SMYK/VM-" + m[2].padStart(3, "0");
+  return v;
+}
+
+function firstHeaderIndex(headers, names) {
+  for (const name of names) {
+    const index = headers.indexOf(normalizeHeader(name));
+    if (index !== -1) return index;
+  }
+  return -1;
+}
+
+function findFinalResult(sheet, query) {
+  const data = sheet.getDataRange().getValues();
+  if (!data || data.length < 2) return null;
+
+  const headers = data[0].map(normalizeHeader);
+  const searchCols = ["student_id", "student id", "name", "email address", "contact number"]
+    .map(name => headers.indexOf(name))
+    .filter(index => index !== -1);
+
+  const q = normalizeSearch(query);
+  const qId = normalizeStudentId(q);
+
+  for (let i = 1; i < data.length; i++) {
+    for (const col of searchCols) {
+      const value = normalizeSearch(data[i][col]);
+      if (value === q || normalizeStudentId(value) === qId || value.includes(q)) {
+        return { headers, row: data[i] };
+      }
+    }
+  }
+  return null;
+}
+
+function findFormDetails(ss, studentId) {
+  const sheet = getSheetAny(ss, ["Form responses 1", "Form Responses 1"]);
+  if (!sheet || !studentId) return null;
+
+  const data = sheet.getDataRange().getValues();
+  if (!data || data.length < 2) return null;
+
+  const headers = data[0].map(normalizeHeader);
+  const idCol = firstHeaderIndex(headers, ["student_id", "student id"]);
+  if (idCol === -1) return null;
+
+  const target = normalizeStudentId(studentId);
+  for (let i = 1; i < data.length; i++) {
+    if (normalizeStudentId(data[i][idCol]) === target) return { headers, row: data[i] };
+  }
+  return null;
+}
+
+function findPracticalMarks(ss, studentId) {
+  const sheet = getSheetAny(ss, ["Practical_Marks", "PRACTICAL_MARKS", "Practical Marks"]);
+  if (!sheet || !studentId) return null;
+
+  const data = sheet.getDataRange().getValues();
+  if (!data || data.length < 2) return null;
+
+  const headers = data[0].map(normalizeHeader);
+  const idCol = firstHeaderIndex(headers, ["student_id", "student id"]);
+  if (idCol === -1) return null;
+
+  const target = normalizeStudentId(studentId);
+  for (let i = 1; i < data.length; i++) {
+    if (normalizeStudentId(data[i][idCol]) === target) return { headers, row: data[i] };
+  }
+  return null;
+}
+
+function getValue(headers, row, names, fallback) {
+  for (const name of names) {
+    const index = headers.indexOf(normalizeHeader(name));
+    if (index !== -1 && row[index] !== "" && row[index] !== null && row[index] !== undefined) return row[index];
+  }
+  return fallback === undefined ? "" : fallback;
+}
+
+function getNumber(headers, row, names) {
+  return Number(getValue(headers, row, names, 0)) || 0;
+}
+
+function mapRow(finalPayload, formPayload, practicalPayload) {
+  const h = finalPayload.headers;
+  const r = finalPayload.row;
+  const fh = formPayload ? formPayload.headers : [];
+  const fr = formPayload ? formPayload.row : [];
+  const ph = practicalPayload ? practicalPayload.headers : [];
+  const pr = practicalPayload ? practicalPayload.row : [];
+
+  const id = getValue(h, r, ["student_id", "student id"]);
+  const name = getValue(h, r, ["name", "full name"]);
+  const mcqScore = getNumber(h, r, ["mcq (50)", "mcq_score", "mcq score"]);
+
+  const q1Practical = getNumber(ph, pr, ["q1 (10)", "q1"]) || getNumber(h, r, ["q1 (10)", "q1"]);
+  const q2Practical = getNumber(ph, pr, ["q2 (10)", "q2"]) || getNumber(h, r, ["q2 (10)", "q2"]);
+  const q3Practical = getNumber(ph, pr, ["q3 (10)", "q3"]) || getNumber(h, r, ["q3 (10)", "q3"]);
+  const q4Practical = getNumber(ph, pr, ["q4 (10)", "q4"]) || getNumber(h, r, ["q4 (10)", "q4"]);
+  const q5Practical = getNumber(ph, pr, ["q5 (10)", "q5"]) || getNumber(h, r, ["q5 (10)", "q5"]);
+  const practicalTotal = getNumber(h, r, ["practical (50)", "practical"])
+    || getNumber(ph, pr, ["total (50)", "practical (50)", "practical total"])
+    || (q1Practical + q2Practical + q3Practical + q4Practical + q5Practical);
+
+  return {
+    id,
+    name,
+    mobile: getValue(h, r, ["contact number", "mobile number", "mobile"], getValue(fh, fr, ["contact number", "mobile number", "mobile"])),
+    email: getValue(h, r, ["email address", "email"], getValue(fh, fr, ["email address", "email"])),
+    batch: getValue(h, r, ["batch timing", "batch"], getValue(fh, fr, ["batch timing", "batch"])),
+    examDate: getValue(fh, fr, ["date of exam"]),
+
+    mcqScore,
+    q1Practical,
+    q2Practical,
+    q3Practical,
+    q4Practical,
+    q5Practical,
+    practicalTotal,
+
+    grandTotal: getNumber(h, r, ["total (100)", "grand total", "total"]),
+    percentage: getNumber(h, r, ["%", "percentage"]),
+    result: getValue(h, r, ["result"]),
+    grade: getValue(h, r, ["grade"])
+  };
+}
+
+function output(data, callback) {
+  const json = JSON.stringify(data);
+  if (callback) {
+    return ContentService.createTextOutput(`${callback}(${json})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
